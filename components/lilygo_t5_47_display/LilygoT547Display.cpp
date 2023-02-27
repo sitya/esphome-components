@@ -52,7 +52,8 @@ void LilygoT547Display::clear() {
 
 void LilygoT547Display::flush_screen_changes() {
   epd_poweron();
-  err = epd_hl_update_screen(&hl, MODE_GC16, this->temperature_);
+  // err = epd_hl_update_screen(&hl, MODE_GC16, this->temperature_);
+  err = epd_hl_update_screen(&hl, PREVIOUSLY_WHITE, this->temperature_);
   if (this->power_off_delay_enabled_ == true) {
     delay(700);
   }
