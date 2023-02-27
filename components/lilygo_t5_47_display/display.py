@@ -26,7 +26,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_CLEAR, default=True): cv.boolean,
             cv.Optional(CONF_POWER_OFF_DELAY_ENABLED, default=False): cv.boolean,
             cv.Optional(CONF_LANDSCAPE, default=True): cv.boolean,
-            cv.Optional(CONF_TEMPERATURE, default=20): cv.uint32_t,
+            cv.Optional(CONF_TEMPERATURE, default=23): cv.uint32_t,
         }
     ).extend(cv.polling_component_schema("5s")),
     cv.has_at_most_one_key(CONF_PAGES, CONF_LAMBDA),
