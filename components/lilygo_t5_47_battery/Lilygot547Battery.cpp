@@ -7,11 +7,11 @@ namespace lilygo_t5_47_battery {
 void Lilygot547Battery::setup() {}
 
 void Lilygot547Battery::update() {
-  epd_poweron();
+  // epd_poweron();
   // wait for voltage to stabilise
   delay(100);
   Lilygot547Battery::update_battery_info();
-  epd_poweroff();
+  // epd_poweroff();
 }
 void Lilygot547Battery::update_battery_info() {
   Lilygot547Battery::correct_adc_reference();

@@ -33,6 +33,4 @@ async def to_code(config):
     conf = config[CONF_VOLTAGE]
     sens = await sensor.new_sensor(conf)
     cg.add(var.set_voltage_sensor(sens))
-
-    cg.add_library("https://github.com/vroland/epdiy.git", None)
     cg.add_build_flag("-DBOARD_HAS_PSRAM")
