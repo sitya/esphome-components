@@ -4,12 +4,16 @@
 #include <esp_heap_caps.h>
 #include <driver/gpio.h>
 #include <hal/gpio_hal.h>
+#include <soc/gpio_periph.h>
 
 #include <rom/lldesc.h>
 #include <soc/i2s_reg.h>
 #include <soc/i2s_struct.h>
 #include <soc/rtc.h>
 #include <soc/gpio_sig_map.h>
+
+// External function from ESP-IDF for GPIO matrix routing
+extern void gpio_matrix_out(uint32_t gpio, uint32_t signal_idx, bool out_inv, bool oen_inv);
 
 
 /// DMA descriptors for front and back line buffer.
@@ -62,21 +66,20 @@ uint32_t dma_desc_addr()
 }
 
 /// Set up a GPIO as output and route it to a signal.
+/// Implementation copied from LilyGO ESP32S3 working version
 static void gpio_setup_out(int gpio, int sig, bool invert)
 {
     if (gpio == -1)
         return;
-    
-    // Set GPIO as output
-    gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
-    
-    // Route the I2S signal to the GPIO pin using direct register access
-    // This is the critical fix - we need to route I2S signals to display pins
-    // Calculate register address for this GPIO
-    volatile uint32_t *gpio_out_reg = (volatile uint32_t *)(0x3FF44000 + 0x0554 + (gpio * 4));
-    
-    // Set the signal routing: bits 0-7 are signal index, bit 9 is invert
-    *gpio_out_reg = sig | (invert ? (1 << 9) : 0);
+
+    // Configure GPIO pin mux to GPIO function (from LilyGO)
+    PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
+
+    // Set GPIO as output using the exact constant from LilyGO
+    gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
+
+    // Route I2S signal to GPIO pin - this is the critical fix!
+    gpio_matrix_out(gpio, sig, invert, false);
 }
 
 /// Resets "Start Pulse" signal when the current row output is done.
