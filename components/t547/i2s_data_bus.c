@@ -66,8 +66,10 @@ static void gpio_setup_out(int gpio, int sig, bool invert)
 {
     if (gpio == -1)
         return;
-    // TODO: Fix GPIO matrix setup for newer ESP32 framework
+    // Set GPIO as output
     gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
+    // Route I2S signal to GPIO pin via matrix
+    gpio_matrix_out(gpio, sig, invert, false);
 }
 
 /// Resets "Start Pulse" signal when the current row output is done.
