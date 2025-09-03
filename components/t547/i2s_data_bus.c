@@ -66,10 +66,9 @@ static void gpio_setup_out(int gpio, int sig, bool invert)
 {
     if (gpio == -1)
         return;
-    // Set GPIO as output
+    // Set GPIO as output - simplified for now
+    // TODO: Need to properly route I2S signals to GPIO for display data
     gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
-    // Route I2S signal to GPIO pin via matrix
-    gpio_matrix_out(gpio, sig, invert, false);
 }
 
 /// Resets "Start Pulse" signal when the current row output is done.
