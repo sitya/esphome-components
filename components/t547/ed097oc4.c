@@ -27,11 +27,11 @@ static epd_config_register_t config_reg;
  * Won't work for some pins (>= 32).
  */
 inline static void fast_gpio_set_hi(gpio_num_t gpio_num) {
-  gpio_set_level(gpio_num, 1);
+  GPIO.out_w1ts = (1 << gpio_num);
 }
 
 inline static void fast_gpio_set_lo(gpio_num_t gpio_num) {
-  gpio_set_level(gpio_num, 0);
+  GPIO.out_w1tc = (1 << gpio_num);
 }
 
 void IRAM_ATTR busy_delay(uint32_t cycles) {

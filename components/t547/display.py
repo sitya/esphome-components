@@ -15,45 +15,27 @@ DEPENDENCIES = ["esp32"]
 CONF_GREYSCALE = "greyscale"
 
 t547_ns = cg.esphome_ns.namespace("t547")
+T547 = t547_ns.class_(
+    "T547", cg.PollingComponent, display.DisplayBuffer
+)
 
-# Handle different ESPHome versions - newer versions don't use PollingComponent for displays
-if cv.Version.parse(ESPHOME_VERSION) >= cv.Version.parse("2023.12.0"):
-    T547 = t547_ns.class_("T547", display.DisplayBuffer)
-else:
-    T547 = t547_ns.class_("T547", cg.PollingComponent, display.DisplayBuffer)
-
-# Schema depends on ESPHome version
-if cv.Version.parse(ESPHOME_VERSION) >= cv.Version.parse("2023.12.0"):
-    CONFIG_SCHEMA = cv.All(
-        display.FULL_DISPLAY_SCHEMA.extend(
-            {
-                cv.GenerateID(): cv.declare_id(T547),
-                cv.Optional(CONF_GREYSCALE, default=False): cv.boolean,
-                cv.Optional(CONF_INVERT, default=True): cv.boolean,
-            }
-        ),
-        cv.has_at_most_one_key(CONF_PAGES, CONF_LAMBDA),
-        cv.only_with_arduino,
+CONFIG_SCHEMA = cv.All(
+    display.FULL_DISPLAY_SCHEMA.extend(
+        {
+            cv.GenerateID(): cv.declare_id(T547),
+            cv.Optional(CONF_GREYSCALE, default=False): cv.boolean,
+            cv.Optional(CONF_INVERT, default=True): cv.boolean,
+        }
     )
-else:
-    CONFIG_SCHEMA = cv.All(
-        display.FULL_DISPLAY_SCHEMA.extend(
-            {
-                cv.GenerateID(): cv.declare_id(T547),
-                cv.Optional(CONF_GREYSCALE, default=False): cv.boolean,
-                cv.Optional(CONF_INVERT, default=True): cv.boolean,
-            }
-        )
-        .extend(cv.polling_component_schema("5s")),
-        cv.has_at_most_one_key(CONF_PAGES, CONF_LAMBDA),
-        cv.only_with_arduino,
-    )
+    .extend(cv.polling_component_schema("5s")),
+    cv.has_at_most_one_key(CONF_PAGES, CONF_LAMBDA),
+    cv.only_with_arduino,
+)
 
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
 
-    # Only register as component for older versions that use PollingComponent
     if cv.Version.parse(ESPHOME_VERSION) < cv.Version.parse("2023.12.0"):
         await cg.register_component(var, config)
 

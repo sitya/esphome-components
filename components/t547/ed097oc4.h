@@ -1,7 +1,6 @@
 #pragma once
 
 #include <driver/gpio.h>
-#include <esp_attr.h>
 
 
 /* Config Reggister Control */
