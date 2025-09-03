@@ -1,10 +1,11 @@
 #include "rmt_pulse.h"
 
 #include <driver/rmt.h>
- #include <esp_idf_version.h>
- #if ESP_IDF_VERSION_MAJOR >= 4
- #include <hal/rmt_ll.h>
- #endif
+#include <esp_idf_version.h>
+#include <rom/ets_sys.h>
+#if ESP_IDF_VERSION_MAJOR >= 4
+#include <hal/rmt_ll.h>
+#endif
 
 static intr_handle_t gRMT_intr_handle = NULL;
 
@@ -25,60 +26,22 @@ static void IRAM_ATTR rmt_interrupt_handler(void *arg)
 
 void rmt_pulse_init(gpio_num_t pin)
 {
-
-    row_rmt_config.rmt_mode = RMT_MODE_TX;
-    // currently hardcoded: use channel 0
-    row_rmt_config.channel = RMT_CHANNEL_1;
-
-    row_rmt_config.gpio_num = pin;
-    row_rmt_config.mem_block_num = 2;
-
-    // Divide 80MHz APB Clock by 8 -> .1us resolution delay
-    row_rmt_config.clk_div = 8;
-
-    row_rmt_config.tx_config.loop_en = false;
-    row_rmt_config.tx_config.carrier_en = false;
-    row_rmt_config.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
-    row_rmt_config.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
-    row_rmt_config.tx_config.idle_output_en = true;
-
-#if ESP_IDF_VERSION_MAJOR >= 4
-    rmt_isr_register(rmt_interrupt_handler, 0,
-                     ESP_INTR_FLAG_LEVEL3, &gRMT_intr_handle);
-#else
-    esp_intr_alloc(ETS_RMT_INTR_SOURCE, ESP_INTR_FLAG_LEVEL3,
-                   rmt_interrupt_handler, 0, &gRMT_intr_handle);
-#endif
-
-    rmt_config(&row_rmt_config);
-#if ESP_IDF_VERSION_MAJOR >= 4
-    rmt_set_tx_intr_en(row_rmt_config.channel, true);
-#else
-    rmt_set_tx_intr_en(row_rmt_config.channel, true);
-#endif
+    // FIXME: Temporarily disable RMT initialization to prevent crashes
+    // Just set the pin as output for now
+    gpio_set_direction(pin, GPIO_MODE_OUTPUT);
+    rmt_tx_done = true;
 }
 
 void IRAM_ATTR pulse_ckv_ticks(uint16_t high_time_ticks,
                                uint16_t low_time_ticks, bool wait)
 {
-    while (!rmt_tx_done) {
-    };
-    rmt_item32_t rmt_item;
-    if (high_time_ticks > 0) {
-        rmt_item.level0 = 1;
-        rmt_item.duration0 = high_time_ticks;
-        rmt_item.level1 = 0;
-        rmt_item.duration1 = low_time_ticks;
-    } else {
-        rmt_item.level0 = 1;
-        rmt_item.duration0 = low_time_ticks;
-        rmt_item.level1 = 0;
-        rmt_item.duration1 = 0;
+    // FIXME: Temporarily disabled RMT to prevent crashes
+    // Use simple delay instead (convert ticks to microseconds, assuming 10 ticks = 1us)
+    uint32_t delay_us = (high_time_ticks + low_time_ticks) / 10;
+    if (delay_us > 0) {
+        ets_delay_us(delay_us);
     }
-    rmt_tx_done = false;
-    rmt_write_items(row_rmt_config.channel, &rmt_item, 1, false);
-    while (wait && !rmt_tx_done) {
-    };
+    rmt_tx_done = true;
 }
 
 void IRAM_ATTR pulse_ckv_us(uint16_t high_time_us, uint16_t low_time_us,
