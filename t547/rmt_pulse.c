@@ -52,7 +52,7 @@ void rmt_pulse_init(gpio_num_t pin)
 
     rmt_config(&row_rmt_config);
 #if ESP_IDF_VERSION_MAJOR >= 4
-    rmt_ll_enable_tx_end_interrupt(&RMT, row_rmt_config.channel, true);
+    rmt_set_tx_intr_en(row_rmt_config.channel, true);
 #else
     rmt_set_tx_intr_en(row_rmt_config.channel, true);
 #endif
@@ -63,24 +63,20 @@ void IRAM_ATTR pulse_ckv_ticks(uint16_t high_time_ticks,
 {
     while (!rmt_tx_done) {
     };
-    volatile rmt_item32_t *rmt_mem_ptr =
-        &(RMTMEM.chan[row_rmt_config.channel].data32[0]);
+    rmt_item32_t rmt_item;
     if (high_time_ticks > 0) {
-        rmt_mem_ptr->level0 = 1;
-        rmt_mem_ptr->duration0 = high_time_ticks;
-        rmt_mem_ptr->level1 = 0;
-        rmt_mem_ptr->duration1 = low_time_ticks;
+        rmt_item.level0 = 1;
+        rmt_item.duration0 = high_time_ticks;
+        rmt_item.level1 = 0;
+        rmt_item.duration1 = low_time_ticks;
     } else {
-        rmt_mem_ptr->level0 = 1;
-        rmt_mem_ptr->duration0 = low_time_ticks;
-        rmt_mem_ptr->level1 = 0;
-        rmt_mem_ptr->duration1 = 0;
+        rmt_item.level0 = 1;
+        rmt_item.duration0 = low_time_ticks;
+        rmt_item.level1 = 0;
+        rmt_item.duration1 = 0;
     }
-    RMTMEM.chan[row_rmt_config.channel].data32[1].val = 0;
     rmt_tx_done = false;
-    RMT.conf_ch[row_rmt_config.channel].conf1.mem_rd_rst = 1;
-    RMT.conf_ch[row_rmt_config.channel].conf1.mem_owner = RMT_MEM_OWNER_TX;
-    RMT.conf_ch[row_rmt_config.channel].conf1.tx_start = 1;
+    rmt_write_items(row_rmt_config.channel, &rmt_item, 1, false);
     while (wait && !rmt_tx_done) {
     };
 }

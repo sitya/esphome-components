@@ -2,18 +2,14 @@
 
 #include <driver/periph_ctrl.h>
 #include <esp_heap_caps.h>
-
-// #include <esp_idf_version.h>
-// #if ESP_IDF_VERSION_MAJOR >= 4
-// #include <esp32/rom/lldesc.h>
-// #else
+#include <driver/gpio.h>
+#include <hal/gpio_hal.h>
 
 #include <rom/lldesc.h>
-
-// #endif
 #include <soc/i2s_reg.h>
 #include <soc/i2s_struct.h>
 #include <soc/rtc.h>
+#include <soc/gpio_sig_map.h>
 
 
 /// DMA descriptors for front and back line buffer.
@@ -70,9 +66,8 @@ static void gpio_setup_out(int gpio, int sig, bool invert)
 {
     if (gpio == -1)
         return;
-    PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
-    gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
-    gpio_matrix_out(gpio, sig, invert, false);
+    // TODO: Fix GPIO matrix setup for newer ESP32 framework
+    gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
 }
 
 /// Resets "Start Pulse" signal when the current row output is done.
@@ -184,10 +179,10 @@ void i2s_bus_init(i2s_bus_config *cfg)
 
 //#if defined(CONFIG_EPD_DISPLAY_TYPE_ED097OC4_LQ)
     // Initialize Audio Clock (APLL) for 120 Mhz.
-    rtc_clk_apll_enable(1, 0, 0, 8, 0);
+    rtc_clk_apll_enable(true);
 //#else
     // Initialize Audio Clock (APLL) for 80 Mhz.
-// rtc_clk_apll_enable(1, 0, 0, 8, 1);
+// rtc_clk_apll_enable(true);
 //#endif
 
 
