@@ -11,6 +11,9 @@
 #include <soc/rtc.h>
 #include <soc/gpio_sig_map.h>
 
+// Declare external function for GPIO matrix routing
+extern void gpio_matrix_out(int gpio, int signal_idx, bool out_inv, bool oen_inv);
+
 
 /// DMA descriptors for front and back line buffer.
 /// We use two buffers, so one can be filled while the other
@@ -66,9 +69,13 @@ static void gpio_setup_out(int gpio, int sig, bool invert)
 {
     if (gpio == -1)
         return;
-    // Set GPIO as output - simplified for now
-    // TODO: Need to properly route I2S signals to GPIO for display data
+    
+    // Set GPIO as output
     gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
+    
+    // Route the I2S signal to the GPIO pin using GPIO matrix
+    // This is the critical fix - we need to route I2S signals to display pins
+    gpio_matrix_out(gpio, sig, invert, false);
 }
 
 /// Resets "Start Pulse" signal when the current row output is done.
