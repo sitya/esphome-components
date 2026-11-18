@@ -14,9 +14,9 @@ namespace t547 {
 static const char *const TAG = "t574";
 
 void T547::setup() {
+  // No clean()/display() here: on a deep-sleep device every wake would flash the panel with an empty frame first,
+  // and the first real display() clears the panel anyway.
   this->initialize_();
-  this->clean();
-  this->display();
 }
 
 void T547::initialize_() {
