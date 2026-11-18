@@ -87,7 +87,7 @@ void T547::display() {
   uint32_t start_time = millis();
 
   epd_poweron();
-  epd_clear();
+  epd_clear_area_cycles(epd_full_screen(), this->clear_cycles_, 50);
   epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
   epd_poweroff();
 

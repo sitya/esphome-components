@@ -23,6 +23,9 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
     this->initialize_();
   }
   void set_invert(bool invert) { this->invert_ = invert; }
+  // Black/white flash cycles used to clear the panel before each full refresh (driver default: 4).
+  // Fewer cycles flicker less but may leave faint ghosting; do a full 4-cycle clear now and then.
+  void set_clear_cycles(int cycles) { this->clear_cycles_ = cycles; }
 
   float get_setup_priority() const override;
 
@@ -58,6 +61,7 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
   size_t get_buffer_length_();
 
   uint8_t panel_on_ = 0;
+  int clear_cycles_ = 4;
   uint8_t temperature_;
 
   bool greyscale_;
