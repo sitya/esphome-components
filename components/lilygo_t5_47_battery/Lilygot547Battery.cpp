@@ -5,6 +5,7 @@ namespace esphome {
 namespace lilygo_t5_47_battery {
 
 static const char *TAG = "lilygo_t5_47_battery";
+static const int SAMPLES = 32;  // one-shot ADC reads averaged per measurement
 
 void Lilygot547Battery::setup() {
   // Configure ADC oneshot unit
@@ -57,17 +58,25 @@ void Lilygot547Battery::update() {
   Lilygot547Battery::update_battery_info();
 }
 
+// Average several one-shot reads to smooth out ADC noise. Note: on the T5 4.7 the battery divider is only valid
+// while the panel power (POWER_EN) is on, so callers should bracket this with epd_poweron() / epd_poweroff().
 void Lilygot547Battery::update_battery_info() {
   if (this->adc_handle == nullptr) {
     return;
   }
 
-  int raw = 0;
-  esp_err_t err = adc_oneshot_read(this->adc_handle, ADC_CHANNEL_0, &raw);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to read ADC: %s", esp_err_to_name(err));
-    return;
+  int sum = 0;
+  for (int i = 0; i < SAMPLES; i++) {
+    int sample = 0;
+    esp_err_t err = adc_oneshot_read(this->adc_handle, ADC_CHANNEL_0, &sample);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "Failed to read ADC: %s", esp_err_to_name(err));
+      return;
+    }
+    sum += sample;
+    delayMicroseconds(100);
   }
+  int raw = (sum + SAMPLES / 2) / SAMPLES;
 
   double battery_voltage;
   if (this->calibrated) {
